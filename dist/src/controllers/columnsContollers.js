@@ -35,11 +35,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteColumn = exports.updateColumn = exports.createColumn = exports.getColumnById = exports.getColumns = void 0;
 const columnService = __importStar(require("../services/column.service"));
 const error_service_1 = require("../services/error.service");
+const taskService = __importStar(require("../services/task.service"));
 const getColumns = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const boardId = req.baseUrl.split('/')[2];
     try {
         const foundedColumns = yield columnService.findColumns({ boardId });
-        res.json(foundedColumns);
+        const foundedTasks = yield taskService.findTasks({ boardId });
+        const columns = yield JSON.parse(JSON.stringify(foundedColumns));
+        const newColumns = foundedColumns.map((column, index) => {
+            column.tasks = foundedTasks.filter(task => task.columnId === columns[index]._id);
+            return column;
+        });
+        res.json(newColumns);
     }
     catch (err) {
         console.log(err);

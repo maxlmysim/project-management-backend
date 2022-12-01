@@ -13,7 +13,8 @@ const columnScheme = new Schema({
   boardId: {
     type: String,
     required: true,
-  }
+  },
+  tasks: []
 }, { versionKey: false });
 
 export default mongoose.model('Column', columnScheme);

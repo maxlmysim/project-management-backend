@@ -17,6 +17,7 @@ const columnScheme = new Schema({
     boardId: {
         type: String,
         required: true,
-    }
+    },
+    tasks: []
 }, { versionKey: false });
 exports.default = mongoose_1.default.model('Column', columnScheme);
