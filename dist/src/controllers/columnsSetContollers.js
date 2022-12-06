@@ -37,6 +37,7 @@ const columnService = __importStar(require("../services/column.service"));
 const error_service_1 = require("../services/error.service");
 const server_service_1 = require("../services/server.service");
 const boardService = __importStar(require("../services/board.service"));
+const taskService = __importStar(require("../services/task.service"));
 const updateSetOfColumns = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const guid = req.header('Guid') || 'undefined';
     const initUser = req.header('initUser') || 'undefined';
@@ -70,7 +71,21 @@ const updateSetOfColumns = (req, res) => __awaiter(void 0, void 0, void 0, funct
         notify: false,
         initUser,
     });
-    return res.json(updatedColumns);
+    try {
+        const boardId = updatedColumns[0].boardId;
+        const foundedColumns = yield columnService.findColumns({ boardId });
+        const foundedTasks = yield taskService.findTasks({ boardId });
+        const columns = yield JSON.parse(JSON.stringify(foundedColumns));
+        const newColumns = foundedColumns.map((column, index) => {
+            column.tasks = foundedTasks.filter(task => task.columnId === columns[index]._id);
+            return column;
+        });
+        res.json(newColumns);
+        return res.json(foundedColumns);
+    }
+    catch (err) {
+        console.log(err);
+    }
 });
 exports.updateSetOfColumns = updateSetOfColumns;
 const findColumns = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
