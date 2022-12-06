@@ -8,7 +8,6 @@ export const getColumns = async (req: Request, res: Response) => {
   const boardId = req.baseUrl.split('/')[2];
   try {
     const foundedColumns = await columnService.findColumns({boardId});
-
     const foundedTasks = await taskService.findTasks({boardId});
     const columns = await JSON.parse(JSON.stringify(foundedColumns))
     const newColumns = foundedColumns.map((column, index) => {

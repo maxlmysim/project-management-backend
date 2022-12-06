@@ -3,6 +3,7 @@ import * as columnService from '../services/column.service';
 import { checkBody, createError } from '../services/error.service';
 import { socket } from '../services/server.service';
 import * as boardService from '../services/board.service';
+import * as taskService from "../services/task.service";
 
 export const updateSetOfColumns = async (req: Request, res: Response) => {
   const guid = req.header('Guid') || 'undefined';
@@ -37,7 +38,23 @@ export const updateSetOfColumns = async (req: Request, res: Response) => {
     notify: false,
     initUser,
   });
-  return res.json(updatedColumns);
+
+  try {
+    const boardId = updatedColumns[0].boardId
+    const foundedColumns = await columnService.findColumns({boardId});
+
+    const foundedTasks = await taskService.findTasks({boardId});
+    const columns = await JSON.parse(JSON.stringify(foundedColumns))
+    const newColumns = foundedColumns.map((column, index) => {
+      column.tasks = foundedTasks.filter(task => task.columnId === columns[index]._id)
+      return column;
+    })
+    res.json(newColumns);
+    return res.json(foundedColumns);
+
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 export const findColumns = async (req: Request, res: Response) => {
