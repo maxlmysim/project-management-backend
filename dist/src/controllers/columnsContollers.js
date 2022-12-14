@@ -42,10 +42,19 @@ const getColumns = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const foundedColumns = yield columnService.findColumns({ boardId });
         const foundedTasks = yield taskService.findTasks({ boardId });
         const columns = yield JSON.parse(JSON.stringify(foundedColumns));
-        const newColumns = foundedColumns.map((column, index) => {
-            column.tasks = foundedTasks.filter(task => task.columnId === columns[index]._id);
+        const newColumns = foundedColumns
+            .map((column, index) => {
+            column.tasks = foundedTasks
+                .filter(task => task.columnId === columns[index]._id)
+                .sort((task1, task2) => task1.order - task2.order)
+                .map((task, index) => {
+                task.order = index;
+                return task;
+            });
             return column;
-        });
+        })
+            .sort((column1, column2) => column1.order - column2.order)
+            .map((column, index) => (Object.assign(Object.assign({}, column), { order: index })));
         res.json(newColumns);
     }
     catch (err) {

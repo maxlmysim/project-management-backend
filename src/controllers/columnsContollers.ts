@@ -10,10 +10,21 @@ export const getColumns = async (req: Request, res: Response) => {
     const foundedColumns = await columnService.findColumns({boardId});
     const foundedTasks = await taskService.findTasks({boardId});
     const columns = await JSON.parse(JSON.stringify(foundedColumns))
-    const newColumns = foundedColumns.map((column, index) => {
-      column.tasks = foundedTasks.filter(task => task.columnId === columns[index]._id)
+    const newColumns = foundedColumns
+      .map((column, index) => {
+      column.tasks = foundedTasks
+        .filter(task => task.columnId === columns[index]._id)
+        .sort((task1, task2) => task1.order - task2.order)
+        .map((task, index)=> {
+          task.order = index
+          return task
+        })
+
       return column;
     })
+      .sort((column1, column2) => column1.order - column2.order)
+      .map((column, index)=> ({...column, order: index}))
+
     res.json(newColumns);
   } catch (err) {
     console.log(err);
