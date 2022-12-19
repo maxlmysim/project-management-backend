@@ -36,13 +36,14 @@ exports.deleteColumn = exports.updateColumn = exports.createColumn = exports.get
 const columnService = __importStar(require("../services/column.service"));
 const error_service_1 = require("../services/error.service");
 const taskService = __importStar(require("../services/task.service"));
+const pointService = __importStar(require("../services/point.service"));
 const getColumns = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const boardId = req.baseUrl.split('/')[2];
     try {
         const foundedColumns = yield columnService.findColumns({ boardId });
         const foundedTasks = yield taskService.findTasks({ boardId });
         const columns = yield JSON.parse(JSON.stringify(foundedColumns));
-        const newColumns = foundedColumns
+        const columnsWithTasks = yield JSON.parse(JSON.stringify(foundedColumns
             .map((column, index) => {
             column.tasks = foundedTasks
                 .filter(task => task.columnId === columns[index]._id)
@@ -54,8 +55,25 @@ const getColumns = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return column;
         })
             .sort((column1, column2) => column1.order - column2.order)
-            .map((column, index) => (Object.assign(Object.assign({}, column), { order: index })));
-        res.json(newColumns);
+            .map((column, index) => {
+            column.order = index;
+            return column;
+        })));
+        const idListPoints = columnsWithTasks.map((column) => [...column.tasks.map(task => task._id)]).flat(1);
+        const pointListPromise = yield Promise.all(idListPoints.map((id) => __awaiter(void 0, void 0, void 0, function* () { return yield pointService.findPoints({ id }); })));
+        const pointList = yield JSON.parse(JSON.stringify(pointListPromise)).flat(1);
+        const columnsWithTasksAndPoints = columnsWithTasks.map((column) => {
+            column.tasks.map((task) => {
+                pointList.map((point) => {
+                    if (task._id === point.taskId) {
+                        task.isDone = true;
+                    }
+                });
+                return task;
+            });
+            return column;
+        });
+        res.json(columnsWithTasksAndPoints);
     }
     catch (err) {
         console.log(err);
