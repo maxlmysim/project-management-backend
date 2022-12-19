@@ -2,6 +2,9 @@ import {Request, Response} from 'express';
 import * as columnService from '../services/column.service';
 import {checkBody, createError} from '../services/error.service';
 import * as taskService from "../services/task.service";
+import * as pointService from "../services/point.service";
+import {IColumnResponse} from "../types/columnTypes";
+import {IPointTaskResponse} from "../types/taskTypes";
 
 
 export const getColumns = async (req: Request, res: Response) => {
@@ -10,22 +13,43 @@ export const getColumns = async (req: Request, res: Response) => {
     const foundedColumns = await columnService.findColumns({boardId});
     const foundedTasks = await taskService.findTasks({boardId});
     const columns = await JSON.parse(JSON.stringify(foundedColumns))
-    const newColumns = foundedColumns
+    const columnsWithTasks = await JSON.parse(JSON.stringify(foundedColumns
       .map((column, index) => {
-      column.tasks = foundedTasks
-        .filter(task => task.columnId === columns[index]._id)
-        .sort((task1, task2) => task1.order - task2.order)
-        .map((task, index)=> {
-          task.order = index
-          return task
-        })
-
-      return column;
-    })
+        column.tasks = foundedTasks
+          .filter(task => task.columnId === columns[index]._id)
+          .sort((task1, task2) => task1.order - task2.order)
+          .map((task, index) => {
+            task.order = index
+            return task
+          })
+        return column;
+      })
       .sort((column1, column2) => column1.order - column2.order)
-      .map((column, index)=> ({...column, order: index}))
+      .map((column, index) => {
+        column.order = index
+        return column
+      })
+    ))
 
-    res.json(newColumns);
+    const idListPoints = columnsWithTasks.map((column: IColumnResponse) => [...column.tasks.map(task => task._id)]).flat(1)
+
+    const pointListPromise = await Promise.all(idListPoints.map(async (id: string) => await pointService.findPoints({id})))
+
+    const pointList: IPointTaskResponse[] = await JSON.parse(JSON.stringify(pointListPromise)).flat(1)
+
+    const columnsWithTasksAndPoints = columnsWithTasks.map((column: IColumnResponse) => {
+      column.tasks.map((task)=>{
+        pointList.map((point)=>{
+          if(task._id === point.taskId){
+            task.isDone = true
+          }
+        })
+        return task
+      })
+      return column
+    })
+
+    res.json(columnsWithTasksAndPoints);
   } catch (err) {
     console.log(err);
   }
