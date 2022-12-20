@@ -62,13 +62,22 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const initUser = req.header('initUser') || 'undefined';
     const boardId = req.baseUrl.split('/')[2];
     const columnId = req.baseUrl.split('/')[4];
-    const bodyError = (0, error_service_1.checkBody)(req.body, ['title', 'order', 'description', 'userId', 'users']);
+    const bodyError = (0, error_service_1.checkBody)(req.body, ['title', 'order', 'description', 'userId', 'users', 'isDone']);
     if (bodyError) {
         return res.status(400).send((0, error_service_1.createError)(400, "bad request: " + bodyError));
     }
-    const { title, order, description, userId, users } = req.body;
+    const { title, order, description, userId, users, isDone } = req.body;
     try {
-        const newTask = yield taskService.createTask({ title, order, description, userId, boardId, columnId, users }, guid, initUser);
+        const newTask = yield taskService.createTask({
+            title,
+            order,
+            description,
+            userId,
+            boardId,
+            columnId,
+            users,
+            isDone
+        }, guid, initUser);
         res.json(newTask);
     }
     catch (err) {
@@ -79,13 +88,21 @@ exports.createTask = createTask;
 const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const guid = req.header('Guid') || 'undefined';
     const initUser = req.header('initUser') || 'undefined';
-    const bodyError = (0, error_service_1.checkBody)(req.body, ['title', 'order', 'description', 'userId', 'columnId', 'users']);
+    const bodyError = (0, error_service_1.checkBody)(req.body, ['title', 'order', 'description', 'userId', 'columnId', 'users', 'isDone']);
     if (bodyError) {
         return res.status(400).send((0, error_service_1.createError)(400, "bad request: " + bodyError));
     }
-    const { title, order, description, userId, columnId, users } = req.body;
+    const { title, order, description, userId, columnId, users, isDone } = req.body;
     try {
-        const updatedTask = yield taskService.updateTask(req.params.taskId, { title, order, description, userId, columnId, users }, guid, initUser);
+        const updatedTask = yield taskService.updateTask(req.params.taskId, {
+            title,
+            order,
+            description,
+            userId,
+            columnId,
+            users,
+            isDone
+        }, guid, initUser);
         res.json(updatedTask);
     }
     catch (err) {

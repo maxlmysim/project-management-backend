@@ -38,10 +38,11 @@ export const getColumns = async (req: Request, res: Response) => {
     const pointList: IPointTaskResponse[] = await JSON.parse(JSON.stringify(pointListPromise)).flat(1)
 
     const columnsWithTasksAndPoints = columnsWithTasks.map((column: IColumnResponse) => {
-      column.tasks.map((task)=>{
-        pointList.map((point)=>{
-          if(task._id === point.taskId){
-            task.isDone = true
+      column.tasks.map((task) => {
+        task.points = []
+        pointList.map((point) => {
+          if (task._id === point.taskId) {
+            task.points.push(point)
           }
         })
         return task

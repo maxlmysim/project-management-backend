@@ -64,9 +64,10 @@ const getColumns = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const pointList = yield JSON.parse(JSON.stringify(pointListPromise)).flat(1);
         const columnsWithTasksAndPoints = columnsWithTasks.map((column) => {
             column.tasks.map((task) => {
+                task.points = [];
                 pointList.map((point) => {
                     if (task._id === point.taskId) {
-                        task.isDone = true;
+                        task.points.push(point);
                     }
                 });
                 return task;

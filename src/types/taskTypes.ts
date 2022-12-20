@@ -11,6 +11,7 @@ export interface ITaskResponse extends ITask {
   _id: string;
   boardId: string;
   columnId: string;
+  points: IPointTaskResponse[]
 }
 
 export type ITasksSet = Pick<ITaskResponse, '_id' | 'order'>;

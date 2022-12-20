@@ -26,10 +26,14 @@ const taskScheme = new Schema({
     type: String,
     required: true,
   },
+  isDone: {
+    type: Boolean,
+    required: true,
+  },
   users: {
     type: [String],
     default: [],
-  }
+  },
 }, { versionKey: false });
 
 export default mongoose.model('Task', taskScheme);
